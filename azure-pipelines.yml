@@ -1,0 +1,95 @@
+﻿# ===========================
+# ASP.NET Core (.NET 8) CI Pipeline
+# ===========================
+
+trigger:
+  branches:
+    include:
+      - main       # or master branch
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  solution: '**/*.sln'
+  project: '**/*.csproj'
+  artifactName: 'drop'
+
+steps:
+  # ----------------------------
+  # 1️⃣ Checkout code
+  # ----------------------------
+  - task: Checkout@1
+    displayName: 'Checkout repository'
+
+  # ----------------------------
+  # 2️⃣ Setup .NET SDK
+  # ----------------------------
+  - task: UseDotNet@2
+    displayName: 'Use .NET 8 SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '8.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  # ----------------------------
+  # 3️⃣ Restore NuGet packages
+  # ----------------------------
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore dependencies'
+    inputs:
+      command: 'restore'
+      projects: '$(solution)'
+
+  # ----------------------------
+  # 4️⃣ Build the project
+  # ----------------------------
+  - task: DotNetCoreCLI@2
+    displayName: 'Build project'
+    inputs:
+      command: 'build'
+      projects: '$(solution)'
+      arguments: '--configuration $(buildConfiguration)'
+
+  # ----------------------------
+  # 5️⃣ Run Unit Tests (optional)
+  # ----------------------------
+  - task: DotNetCoreCLI@2
+    displayName: 'Run unit tests'
+    inputs:
+      command: 'test'
+      projects: '$(solution)'
+      arguments: '--configuration $(buildConfiguration) --no-build'
+
+  # ----------------------------
+  # 6️⃣ Publish output
+  # ----------------------------
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish application'
+    inputs:
+      command: 'publish'
+      publishWebProjects: true
+      arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+      zipAfterPublish: true
+
+  # ----------------------------
+  # 7️⃣ Publish artifact to Azure DevOps
+  # ----------------------------
+  - task: PublishBuildArtifacts@1
+    displayName: 'Upload build artifacts'
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: '$(artifactName)'
+
+  # ----------------------------
+  # 8️⃣ Deploy to Azure Web App
+  # ----------------------------
+  # - task: AzureWebApp@1
+  #   displayName: 'Deploy to Azure App Service'
+  #   inputs:
+  #     azureSubscription: '<your-azure-service-connection>'
+  #     appType: 'webApp'
+  #     appName: '<your-webapp-name>'
+  #     package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
+
