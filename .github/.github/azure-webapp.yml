@@ -1,0 +1,41 @@
+name: Build and Deploy WebApplication1 to Azure
+
+on:
+  push:
+    branches:
+      - main  # main branch এ push হলেই pipeline চলবে
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout source code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup .NET SDK
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'   # তোমার প্রজেক্টের ভার্সন অনুযায়ী (যেমন 7.0.x হলে পরিবর্তন করো)
+
+      # 3️⃣ Restore dependencies
+      - name: Restore dependencies
+        run: dotnet restore WebApplication1.sln
+
+      # 4️⃣ Build project
+      - name: Build project
+        run: dotnet build WebApplication1.sln --configuration Release --no-restore
+
+      # 5️⃣ Publish to folder
+      - name: Publish app
+        run: dotnet publish WebApplication1/WebApplication1.csproj -c Release -o ./publish_output
+
+      # 6️⃣ Deploy to Azure App Service
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'your-azure-app-name'            # 👉 এখানে তোমার Azure App Service নাম দাও
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish_output
