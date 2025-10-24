@@ -1,10 +1,164 @@
 ﻿@page
-@model IndexModel
+@model Pages.IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Employee Management";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h2>Employee Management</h2>
+
+<form id="Frm_AccSubHead" method="post">
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.EmployeeID" class="form-control" readonly />
+                <label>Employee ID</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.FirstName" class="form-control" placeholder="First Name" />
+                <label>First Name</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.LastName" class="form-control" placeholder="Last Name" />
+                <label>Last Name</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.Division" class="form-control" placeholder="Division" />
+                <label>Division</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.Building" class="form-control" placeholder="Building" />
+                <label>Building</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.Title" class="form-control" placeholder="Title" />
+                <label>Title</label>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-floating mb-2">
+                <input asp-for="Models.EmployeeModel.Room" class="form-control" placeholder="Room" />
+                <label>Room</label>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" id="btnSubHead_Save" class="btn btn-success">Save / Edit</button>
+</form>
+
+<hr />
+
+<div class="table-responsive">
+    <table id="employeeTable"
+           class="table table-bordered table-sm"
+           data-toggle="table"
+           data-search="true"
+           data-height="400"
+           data-pagination="true">
+        <thead>
+            <tr>
+                <th data-field="edit" data-formatter="editFormatter" data-events="operateEvents">Edit</th>
+                <th data-field="employeeID">Employee ID</th>
+                <th data-field="firstName">First Name</th>
+                <th data-field="lastName">Last Name</th>
+                <th data-field="division">Division</th>
+                <th data-field="building">Building</th>
+                <th data-field="title">Title</th>
+                <th data-field="room">Room</th>
+                <th data-field="delete" data-formatter="deleteFormatter" data-events="operateEvents">Delete</th>
+            </tr>
+        </thead>
+    </table>
 </div>
+
+<input type="hidden" id="selectedIndex" />
+
+@section Scripts {
+    <script>
+        var $table = $('#employeeTable');
+
+        // Load table data
+        function loadEmployees() {
+            $.ajax({
+                url: "?handler=Emp_Data",
+                type: "GET",
+                success: function (data) {
+                    $table.bootstrapTable('load', data);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            loadEmployees();
+        });
+
+        // Edit & Delete buttons
+        function editFormatter(value, row, index) {
+            return '<a href="javascript:void(0)" class="edit btn btn-sm btn-primary"><i class="fa fa-edit"></i></a>';
+        }
+
+        function deleteFormatter(value, row, index) {
+            return '<a href="javascript:void(0)" class="delete btn btn-sm btn-danger"><i class="fa fa-trash"></i></a>';
+        }
+
+        window.operateEvents = {
+            'click .edit': function (e, value, row, index) {
+                $('#selectedIndex').val(index);
+                $('#Models_EmployeeModel_EmployeeID').val(row.employeeID);
+                $('#Models_EmployeeModel_FirstName').val(row.firstName);
+                $('#Models_EmployeeModel_LastName').val(row.lastName);
+                $('#Models_EmployeeModel_Division').val(row.division);
+                $('#Models_EmployeeModel_Building').val(row.building);
+                $('#Models_EmployeeModel_Title').val(row.title);
+                $('#Models_EmployeeModel_Room').val(row.room);
+            },
+            'click .delete': function (e, value, row, index) {
+                if (confirm("Are you sure you want to delete this employee?")) {
+                    $.ajax({
+                        url: "?handler=DeleteRow",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(row.employeeID),
+                        success: function () {
+                            alert("Employee deleted successfully!");
+                            loadEmployees();
+                        },
+                        error: function () {
+                            alert("Failed to delete employee!");
+                        }
+                    });
+                }
+            }
+        };
+
+        // Save / Edit button
+        $('#btnSubHead_Save').click(function () {
+            var formData = new FormData($('#Frm_AccSubHead')[0]);
+
+            $.ajax({
+                url: "?handler=Submit_AccSubHead",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function () {
+                    alert("Saved / Edited successfully!");
+                    $('#Frm_AccSubHead')[0].reset();
+                    loadEmployees();
+                },
+                error: function () {
+                    alert("Failed to save / edit!");
+                }
+            });
+        });
+    </script>
+}

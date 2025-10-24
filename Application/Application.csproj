@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ApplicatonService\AccHead_Servise\**" />
+    <Compile Remove="ApplicatonService\IServiceRepository\**" />
+    <Compile Remove="ApplicatonService\ServiceRepository\**" />
+    <EmbeddedResource Remove="ApplicatonService\AccHead_Servise\**" />
+    <EmbeddedResource Remove="ApplicatonService\IServiceRepository\**" />
+    <EmbeddedResource Remove="ApplicatonService\ServiceRepository\**" />
+    <None Remove="ApplicatonService\AccHead_Servise\**" />
+    <None Remove="ApplicatonService\IServiceRepository\**" />
+    <None Remove="ApplicatonService\ServiceRepository\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
